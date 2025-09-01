@@ -1,0 +1,307 @@
+{
+  "name": "Instagram to Nostr Bot",
+  "nodes": [
+    {
+      "parameters": {
+        "url": "",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpQueryAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n    \"usernames\": [\n        \" \"\n    ]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -1216,
+        -336
+      ],
+      "id": "83095f38-0b96-4617-b9c2-10bf50956b67",
+      "name": "Instagram HTTP Request",
+      "credentials": {
+        "httpQueryAuth": {
+          "id": "",
+          "name": ""
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "event",
+        "content": "={{ $json.content }}",
+        "tags": "=[]"
+      },
+      "type": "n8n-nodes-nostrobots.nostrobots",
+      "typeVersion": 1,
+      "position": [
+        -256,
+        -256
+      ],
+      "id": "1d588f24-51bf-44b2-9400-db05a1f8b08c",
+      "name": "Send a event",
+      "credentials": {
+        "nostrobotsApi": {
+          "id": "rR5V5IDBLAEBSUZt",
+          "name": "Nostr Bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 1
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -1472,
+        -240
+      ],
+      "id": "d763762c-cfff-4560-8a01-3d2dac95f7a5",
+      "name": "Schedule Trigger",
+      "alwaysOutputData": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "pubkey": "", 
+        "relative": false,
+        "since": "2025-08-01T00:00:00",
+        "until": "={{ $now }}",
+        "relay": "wss://relay.damus.io,wss://relay-jp.nostr.wiwss://relay.damus.io,wss://relay-jp.nostr.wirednet.jp,wss://nostr-relay.nokotaro.com,wss://bitcoiner.social,wss://relay.primal.net,wss://nostr-01.yakihonne.com,wss://nostr-02.yakihonne.comrednet.jp,wss://nostr-relay.nokotaro.com,wss://bitcoiner.social,wss://relay.primal.net,wss://nostr-01.yakihonne.com,wss://nostr-02.yakihonne.com"
+      },
+      "type": "n8n-nodes-nostrobots.nostrobotsread",
+      "typeVersion": 1,
+      "position": [
+        -1216,
+        -160
+      ],
+      "id": "7381034d-6f7b-4c03-85ab-c8f7916a040a",
+      "name": "Nostr Read"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b648a53d-3557-40fa-bb5d-b21bb45df64e",
+              "name": "caption",
+              "value": "={{ $json.latestPosts[0].caption }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -960,
+        -336
+      ],
+      "id": "6814eb58-10e2-498e-89b8-e4c1f77f476b",
+      "name": "Last Insta Post"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -704,
+        -256
+      ],
+      "id": "40ab122b-3b31-4613-bfd7-1740c1d9acfa",
+      "name": "Merge"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        -1088,
+        -16
+      ],
+      "id": "8447fc5c-54c4-46b5-8173-31309286770e",
+      "name": "Limit last post"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ec9a78eb-2119-47b5-a79a-e8587c73e99e",
+              "name": "content",
+              "value": "={{ $json.content }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -960,
+        -160
+      ],
+      "id": "981012cc-6207-40c7-8afe-84d67c4a7e97",
+      "name": "Last Nostr Post"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Input data: assume we're working with items from n8n\nreturn items.map(item => {\n  const json = item.json;\n\n  // If 'caption' exists, replace it with 'content'\n  if (json.caption !== undefined) {\n    json.content = json.caption;\n    delete json.caption;\n  }\n\n  return { json };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -544,
+        -256
+      ],
+      "id": "5d6296bc-0f56-4685-9c48-baa74e1fd2d6",
+      "name": "remapping"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get the input items\nconst items = $items();\n\nif (items.length >= 2) {\n  const firstContent = items[0].json.content;\n  const secondContent = items[1].json.content;\n\n  if (firstContent === secondContent) {\n    // Return only the first item if contents are exactly the same\n    //return [items[1]];\n  }\n  else{\n    return [items[0]];\n  }\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -400,
+        -256
+      ],
+      "id": "d3c82614-47a2-458e-b480-7f3cb9f81e6b",
+      "name": "if"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Instagram HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Last Insta Post",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a event": {
+      "main": [
+        []
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Instagram HTTP Request",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Nostr Read",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Nostr Read": {
+      "main": [
+        [
+          {
+            "node": "Limit last post",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Last Insta Post": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit last post": {
+      "main": [
+        [
+          {
+            "node": "Last Nostr Post",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Last Nostr Post": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Code1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code1": {
+      "main": [
+        [
+          {
+            "node": "Send a event",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "ea67c8df-46fa-4361-9891-3dee15c3f6cf",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "cecbcbd972993d8b56e90960eefa78ebff8cff84a55ad7771d4623db682cc2b2"
+  },
+  "id": "BaQJnT0IThvIZKMi",
+  "tags": []
+}
