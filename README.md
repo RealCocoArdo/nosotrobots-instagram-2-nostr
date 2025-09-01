@@ -6,7 +6,7 @@
 </p>
 
 ## Introduction
-This is a simple Nostr Bot crossposting text from Instrgam on Nostr. It should be a good starting point to build a custom Nostr Bot application with n8n.
+This is a simple Nostr bot that posts text from Instagram to Nostr. It should be a good starting point to build a custom Nostr bot application with n8n
 <br>
 This application is build using the <a href="https://github.com/ocknamo/n8n-nodes-nostrobots?tab=readme-ov-file">n8n-nodes-nostrobots</a>.
 
